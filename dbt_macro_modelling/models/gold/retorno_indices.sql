@@ -40,7 +40,7 @@ SELECT
     b.variacao_diaria,
 
     CASE
-        WHEN b.ticker IN ('VT', '^GSPC')
+        WHEN b.ticker IN ('VT', '^GSPC','BTC-USD','^XAU')
             THEN COALESCE(
                 b.variacao_diaria + u.dolar_variacao + (b.variacao_diaria * u.dolar_variacao),
                 b.variacao_diaria
