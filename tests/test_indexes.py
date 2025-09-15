@@ -41,6 +41,21 @@ data = yf.download(
 # inclui a coluna 'Adj Close' (já ajustada por dividendos e splits)
 print(data)
 
+# %% 
+tickers = 'btc-usd'
+
+end = date.today()
+start = '2022-01-03'
+
+# baixa dados de 1 mês, corrigindo falhas (repair=True)
+data = yf.download(
+    tickers,
+    start=start,
+    end=end,
+    repair=True
+    )
+
+
 # %%
 # transformar MultiIndex em formato longo
 df = data.stack(level=1).reset_index()

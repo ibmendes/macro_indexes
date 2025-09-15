@@ -55,7 +55,7 @@ def get_indexes(
 
     """
     if tickers is None:
-        tickers = ['VT', '^BVSP', '^GSPC', 'IDIV.SA', 'DIVO11.SA']
+        tickers = ['VT', '^BVSP', '^GSPC', 'IDIV.SA', 'DIVO11.SA', 'BTC-USD','^XAU']
         
     # Se datas customizadas não forem passadas, define pelo histórico no Postgres
     if start is None:
@@ -116,6 +116,8 @@ def get_indexes(
             .when(F.col("Ticker") == "^BVSP", F.lit("Ibovespa"))
             .when(F.col("Ticker") == "^GSPC", F.lit("S&P 500"))
             .when(F.col("Ticker") == "IDIV.SA", F.lit("IDIV"))
+            .when(F.col("Ticker") == "BTC-USD", F.lit("BTC"))
+            .when(F.col("Ticker") == "^XAU", F.lit("OURO"))
             .otherwise(F.col("Ticker"))
         )
         .withColumn(
@@ -125,6 +127,8 @@ def get_indexes(
             .when(F.col("Ticker") == "^GSPC", F.lit("S&P500"))
             .when(F.col("Ticker") == "IDIV.SA", F.lit("IDIV"))
             .when(F.col("Ticker") == "DIVO11.SA", F.lit("IDIV - DIVO11 IT ETF"))
+            .when(F.col("Ticker") == "BTC-USD", F.lit("BTC"))
+            .when(F.col("Ticker") == "^XAU", F.lit("OURO"))
             .otherwise(F.col("Ticker"))
         )
         .select(
