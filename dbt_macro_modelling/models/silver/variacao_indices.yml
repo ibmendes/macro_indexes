@@ -1,0 +1,27 @@
+version: 2
+
+models:
+  - name: variacao_indices
+    description: "Tabela incremental unificada com as variações diárias de índices, moedas e indicadores."
+    columns:
+      - name: dataCotacao
+        description: "Data da cotação do índice"
+        tests:
+          - not_null
+
+      - name: ticker
+        description: "Código único do índice"
+        tests:
+          - not_null
+
+      - name: fechamento
+        description: "Valor de fechamento do índice na data"
+        tests:
+          - not_null
+
+      - name: variacao_diaria
+        description: "Variação percentual diária em relação ao dia anterior"
+
+    tests:
+      - unique:
+          column_name: "concat(dataCotacao, '-', ticker)"

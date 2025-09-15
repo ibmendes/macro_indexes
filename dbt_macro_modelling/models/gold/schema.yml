@@ -1,0 +1,28 @@
+version: 2
+
+models:
+  - name: retorno_indices
+    description: "Tabela Gold consolidando retorno dos índices (ajustados pelo dólar para globais)."
+    columns:
+      - name: dataCotacao
+        description: "Data da cotação"
+        tests:
+          - not_null
+      - name: indicador
+        description: "Nome do índice ou ativo"
+      - name: ticker
+        description: "Ticker único do ativo"
+        tests:
+          - not_null
+      - name: tickernome
+        description: "Nome amigável do ticker"
+      - name: fechamento
+        description: "Valor de fechamento na data"
+      - name: variacao_diaria
+        description: "Variação percentual diária em moeda de origem"
+      - name: retorno_em_reais
+        description: "Variação percentual ajustada em reais (para índices globais)"
+      - name: dolar_fechamento
+        description: "Cotação de fechamento do dólar (USD/BRL)"
+      - name: dolar_variacao
+        description: "Variação percentual diária do dólar"

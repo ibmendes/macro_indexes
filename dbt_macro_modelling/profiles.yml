@@ -1,0 +1,12 @@
+dbt_macro_modelling:
+  target: dev
+  outputs:
+    dev:
+      type: postgres
+      host: localhost        # <-- aqui você troca o host
+      user: hiveuser
+      password: hivepassword
+      port: 5432
+      dbname: sgs_bacen      # nome do banco
+      schema: indexes            # schema default
+      threads: 1

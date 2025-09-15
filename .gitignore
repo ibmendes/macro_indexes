@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.egg-info/
+*.egg
+
+# Virtual environment
+venv/
+.env/
+.env.* 
+
+# Logs
+logs/
+*.log
+
+# dbt
+dbt_macro_modelling/target/
+dbt_macro_modelling/.dbt/
+dbt_macro_modelling/run/
+dbt_macro_modelling/.pytest_cache/
+dbt_macro_modelling/*.lock
+
+# IDEs
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Python test cache
+.pytest_cache/
+
+# Jupyter Notebook checkpoints (se houver)
+.ipynb_checkpoints/

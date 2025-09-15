@@ -1,0 +1,7 @@
+psycopg2-binary
+pandas
+python-bcb
+findspark
+yfinance
+dbt-core
+dbt-postgres
