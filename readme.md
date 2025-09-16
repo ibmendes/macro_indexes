@@ -37,11 +37,12 @@ in order to replicate this project you will need, after the clone:
     | yfinance   | IDIV / DIVO11   | Brazilian large cap with dividends index                                                                   |
     | yfinance   | ^IBOV           | Brazilian stock market index IBOVESPA                                                                      |
     | yfinance   | ^GSPC           | S\&P500                                                                                                    |
+    | yfinance   | BTC-USD         | Bitcoin                                                                                                    |
+    | yfinance   | ^XAU            | PHLX Gold/Silver Sector                                                                                    |
     | yfinance   | VT              | Total world stock index etf by vanguard                                                                    |
 
-
-2. load = transforming into raw tables in the rdbms (pgsql)
-3. transform = with the use of dbt, retrieving data in the [medallion](https://learn.microsoft.com/en-us/azure/databricks/lakehouse/medallion) 
+3. load = transforming into raw tables in the rdbms (pgsql)
+4. transform = with the use of dbt, retrieving data in the [medallion](https://learn.microsoft.com/en-us/azure/databricks/lakehouse/medallion) 
 architecture 
 (raw → silver → gold)
 
