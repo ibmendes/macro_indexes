@@ -55,7 +55,7 @@ def get_indexes(
 
     """
     if tickers is None:
-        tickers = ['VT', '^BVSP', '^GSPC', 'IDIV.SA', 'DIVO11.SA', 'BTC-USD','^XAU']
+        tickers = ['VT', '^BVSP', '^GSPC', 'DIVO11.SA', 'BTC-USD','^XAU']
         
     # Se datas customizadas não forem passadas, define pelo histórico no Postgres
     if start is None:
