@@ -10,7 +10,8 @@ WITH cdi_v AS (
         cod_sgs::text as ticker,
         upper(nm_indice) as tickernome,
         valor as fechamento,
-        COALESCE(valor / NULLIF(LAG(valor) OVER (PARTITION BY cod_sgs ORDER BY data), 0) - 1, 0) AS variacao_diaria
+        -- COALESCE(valor / NULLIF(LAG(valor) OVER (PARTITION BY cod_sgs ORDER BY data), 0) - 1, 0) AS variacao_diaria
+        valor AS variacao_diaria  -- python-bcb indexes actually are already daily/monthly vars. 
     FROM raw.cdi
     {% if is_incremental() %}
         WHERE data > (SELECT max(dataCotacao) FROM {{ this }})
@@ -24,7 +25,8 @@ ipca_v AS (
         cod_sgs::text as ticker,
         upper(nm_indice) as tickernome,
         valor as fechamento,
-        COALESCE(valor / NULLIF(LAG(valor) OVER (PARTITION BY cod_sgs ORDER BY data), 0) - 1, 0) AS variacao_diaria
+        -- COALESCE(valor / NULLIF(LAG(valor) OVER (PARTITION BY cod_sgs ORDER BY data), 0) - 1, 0) AS variacao_diaria
+        valor AS variacao_diaria  -- python-bcb indexes actually are already daily/monthly vars. 
     FROM raw.ipca
     {% if is_incremental() %}
         WHERE data > (SELECT max(dataCotacao) FROM {{ this }})
@@ -38,7 +40,8 @@ igpm_v AS (
         cod_sgs::text as ticker,
         upper(nm_indice) as tickernome,
         valor as fechamento,
-        COALESCE(valor / NULLIF(LAG(valor) OVER (PARTITION BY cod_sgs ORDER BY data), 0) - 1, 0) AS variacao_diaria
+        -- COALESCE(valor / NULLIF(LAG(valor) OVER (PARTITION BY cod_sgs ORDER BY data), 0) - 1, 0) AS variacao_diaria
+        valor AS variacao_diaria  -- python-bcb indexes actually are already daily/monthly vars. 
     FROM raw.igpm
     {% if is_incremental() %}
         WHERE data > (SELECT max(dataCotacao) FROM {{ this }})
