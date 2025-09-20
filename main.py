@@ -66,6 +66,7 @@ class Main:
             .option("dbtable", f"{schema}.{table_name}") \
             .option("user", self.connector.user) \
             .option("password", self.connector.password) \
+            .option("driver", "org.postgresql.Driver") \
             .mode(mode) \
             .save()
 
