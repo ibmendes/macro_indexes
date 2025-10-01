@@ -1,6 +1,6 @@
 {{ config(
     materialized='incremental',
-    unique_key='dataCotacao||ticker',
+    unique_key=['dataCotacao','ticker'],
     post_hook=[
         "COMMENT ON COLUMN {{ this }}.dataCotacao IS 'Data da cotação'",
         "COMMENT ON COLUMN {{ this }}.indicador IS 'Nome do indicador'",
@@ -18,7 +18,7 @@ WITH base AS (
     SELECT *
     FROM {{ ref('variacao_indices') }}
     {% if is_incremental() %}
-      WHERE dataCotacao > (SELECT max(dataCotacao) FROM {{ this }})
+      WHERE dataCotacao >= (SELECT max(dataCotacao) - interval '7 days' FROM {{ this }})
     {% endif %}
 ),
 
