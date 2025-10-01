@@ -1,6 +1,6 @@
 {{ config(
     materialized='incremental',
-    unique_key='dataCotacao||ticker'
+    unique_key=['dataCotacao','ticker']
 ) }}
 
 WITH cdi_v AS (
@@ -10,11 +10,10 @@ WITH cdi_v AS (
         cod_sgs::text as ticker,
         upper(nm_indice) as tickernome,
         valor as fechamento,
-        -- COALESCE(valor / NULLIF(LAG(valor) OVER (PARTITION BY cod_sgs ORDER BY data), 0) - 1, 0) AS variacao_diaria
-        valor AS variacao_diaria  -- python-bcb indexes actually are already daily/monthly vars. 
+        valor AS variacao_diaria  -- python-bcb já traz a variação
     FROM raw.cdi
     {% if is_incremental() %}
-        WHERE data > (SELECT max(dataCotacao) FROM {{ this }})
+        WHERE data >= (SELECT max(dataCotacao) - interval '7 days' FROM {{ this }})
     {% endif %}
 ),
 
@@ -25,11 +24,10 @@ ipca_v AS (
         cod_sgs::text as ticker,
         upper(nm_indice) as tickernome,
         valor as fechamento,
-        -- COALESCE(valor / NULLIF(LAG(valor) OVER (PARTITION BY cod_sgs ORDER BY data), 0) - 1, 0) AS variacao_diaria
-        valor AS variacao_diaria  -- python-bcb indexes actually are already daily/monthly vars. 
+        valor AS variacao_diaria
     FROM raw.ipca
     {% if is_incremental() %}
-        WHERE data > (SELECT max(dataCotacao) FROM {{ this }})
+        WHERE data >= (SELECT max(dataCotacao) - interval '7 days' FROM {{ this }})
     {% endif %}
 ),
 
@@ -40,11 +38,10 @@ igpm_v AS (
         cod_sgs::text as ticker,
         upper(nm_indice) as tickernome,
         valor as fechamento,
-        -- COALESCE(valor / NULLIF(LAG(valor) OVER (PARTITION BY cod_sgs ORDER BY data), 0) - 1, 0) AS variacao_diaria
-        valor AS variacao_diaria  -- python-bcb indexes actually are already daily/monthly vars. 
+        valor AS variacao_diaria
     FROM raw.igpm
     {% if is_incremental() %}
-        WHERE data > (SELECT max(dataCotacao) FROM {{ this }})
+        WHERE data >= (SELECT max(dataCotacao) - interval '7 days' FROM {{ this }})
     {% endif %}
 ),
 
@@ -55,10 +52,13 @@ cotacoes_indices_v AS (
         upper(ticker) as ticker,
         upper(tickernome) as tickernome,
         fechamento,
-        COALESCE(fechamento / NULLIF(LAG(fechamento) OVER (PARTITION BY ticker ORDER BY dataCotacao), 0) - 1, 0) AS variacao_diaria
+        COALESCE(
+            fechamento / NULLIF(LAG(fechamento) OVER (PARTITION BY ticker ORDER BY dataCotacao), 0) - 1,
+            0
+        ) AS variacao_diaria
     FROM raw.cotacoes_indices
     {% if is_incremental() %}
-        WHERE dataCotacao > (SELECT max(dataCotacao) FROM {{ this }})
+        WHERE dataCotacao >= (SELECT max(dataCotacao) - interval '7 days' FROM {{ this }})
     {% endif %}
 ),
 
@@ -69,10 +69,13 @@ cotacao_moedas_v AS (
         upper(moeda) as ticker,
         upper(moeda) as tickernome,
         cotacaovenda as fechamento,
-        COALESCE(cotacaovenda / NULLIF(LAG(cotacaovenda) OVER (PARTITION BY moeda ORDER BY dataCotacao), 0) - 1, 0) AS variacao_diaria
+        COALESCE(
+            cotacaovenda / NULLIF(LAG(cotacaovenda) OVER (PARTITION BY moeda ORDER BY dataCotacao), 0) - 1,
+            0
+        ) AS variacao_diaria
     FROM raw.cotacao_moedas
     {% if is_incremental() %}
-        WHERE dataCotacao > (SELECT max(dataCotacao) FROM {{ this }})
+        WHERE dataCotacao >= (SELECT max(dataCotacao) - interval '7 days' FROM {{ this }})
     {% endif %}
 )
 
