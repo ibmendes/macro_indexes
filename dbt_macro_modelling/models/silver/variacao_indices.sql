@@ -46,17 +46,21 @@ igpm_v AS (
 ),
 
 cotacoes_indices_v AS (
+    WITH data_com_lookback AS (
+        SELECT *
+        FROM raw.cotacoes_indices
+        {% if is_incremental() %}
+            WHERE dataCotacao >= (SELECT max(dataCotacao) - interval '14 days' FROM {{ this }})
+        {% endif %}
+    )
     SELECT
         dataCotacao,
         upper(codigoticker) AS indicador,
         upper(ticker) as ticker,
         upper(tickernome) as tickernome,
         fechamento,
-        COALESCE(
-            fechamento / NULLIF(LAG(fechamento) OVER (PARTITION BY ticker ORDER BY dataCotacao), 0) - 1,
-            0
-        ) AS variacao_diaria
-    FROM raw.cotacoes_indices
+        fechamento / NULLIF(LAG(fechamento) OVER (PARTITION BY ticker ORDER BY dataCotacao), 0) - 1 AS variacao_diaria
+    FROM data_com_lookback
     {% if is_incremental() %}
         WHERE dataCotacao >= (SELECT max(dataCotacao) - interval '7 days' FROM {{ this }})
     {% endif %}
