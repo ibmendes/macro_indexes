@@ -98,3 +98,66 @@ if df.count() > 0:
 # main trigger
 main.run()
 # %%
+from bcb import PTAX
+
+ptax = PTAX()
+ep = ptax.get_endpoint("CotacaoMoedaPeriodo")
+
+df = (
+    ep.query()
+    .parameters(
+        moeda="USD",
+        dataInicial="07/24/2026",
+        dataFinalCotacao="09/29/2026"
+    )
+    .collect()
+)
+
+print(df)
+# %%
+from bcb import PTAX
+
+ptax = PTAX()
+ep = ptax.get_endpoint("CotacaoMoedaPeriodo")
+
+query = (
+    ep.query()
+    .parameters(
+        moeda="USD",
+        dataInicial="07/24/2026",
+        dataFinalCotacao="09/29/2026"
+    )
+)
+
+print("URL:")
+print(query.url)
+
+print("\nRESPOSTA:")
+response = query.text()
+
+print("Tamanho:", len(response))
+print(repr(response[:1000]))
+# %%
+import requests
+
+url = (
+    "https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/"
+    "CotacaoMoedaPeriodo(moeda=@moeda,dataInicial=@dataInicial,dataFinalCotacao=@dataFinalCotacao)"
+)
+
+params = {
+    "@moeda": "'USD'",
+    "@dataInicial": "'07-24-2026'",
+    "@dataFinalCotacao": "'09-29-2026'",
+    "$format": "json"
+}
+
+response = requests.get(url, params=params)
+
+print("STATUS:", response.status_code)
+print("URL:", response.url)
+print("CONTENT-TYPE:", response.headers.get("content-type"))
+print("TAMANHO:", len(response.text))
+print("\nRESPOSTA:")
+print(response.text[:2000])
+# %%
