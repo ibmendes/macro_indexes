@@ -5,6 +5,7 @@ from datetime import date, timedelta
 
 from pyspark.sql import DataFrame
 import pyspark.sql.functions as F
+import requests
 
 def get_referencia(
     pg_conn,
@@ -33,27 +34,80 @@ def get_referencia(
 
     return max_data
 
-def get_boletins(inicio:str, fim:str) -> pd.DataFrame:
+def get_boletins(inicio: str, fim: str) -> pd.DataFrame:
     """
-    filtra no endpoint da api as janelas moveis das moedas fortes
+    Busca boletins PTAX diretamente na API do Banco Central.
     """
 
     moedas_fortes = ("USD", "EUR", "CHF")
-    ptax = PTAX()
-    ep = ptax.get_endpoint('CotacaoMoedaPeriodo')
-    
-    dfs = []
-    for moeda in moedas_fortes:
-        df = (ep.query()
-                .parameters(moeda=moeda,
-                            dataInicial=inicio,
-                            dataFinalCotacao=fim)
-                .collect())
-        df["moeda"] = moeda
-        dfs.append(df)
-    df = pd.concat(dfs)
 
-    return df
+    url = (
+        "https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/"
+        "CotacaoMoedaPeriodo("
+        "moeda=@moeda,"
+        "dataInicial=@dataInicial,"
+        "dataFinalCotacao=@dataFinalCotacao"
+        ")"
+    )
+
+    # A API PTAX espera MM-DD-YYYY
+    inicio_api = inicio.replace("/", "-")
+    fim_api = fim.replace("/", "-")
+
+    dfs = []
+
+    for moeda in moedas_fortes:
+
+        print(f"[INFO] Buscando {moeda}: {inicio} até {fim}")
+
+        params = {
+            "@moeda": f"'{moeda}'",
+            "@dataInicial": f"'{inicio_api}'",
+            "@dataFinalCotacao": f"'{fim_api}'",
+            "$format": "json"
+        }
+
+        try:
+            response = requests.get(
+                url,
+                params=params,
+                timeout=30
+            )
+
+            response.raise_for_status()
+
+            data = response.json()
+
+            df = pd.DataFrame(data["value"])
+
+            if not df.empty:
+                df["moeda"] = moeda
+                dfs.append(df)
+
+                print(
+                    f"[INFO] {moeda}: "
+                    f"{len(df)} registros encontrados"
+                )
+            else:
+                print(
+                    f"[WARN] {moeda}: "
+                    "nenhum registro encontrado"
+                )
+
+        except requests.RequestException as e:
+            print(
+                f"[ERRO] Falha HTTP ao buscar {moeda}: {e}"
+            )
+
+        except (ValueError, KeyError) as e:
+            print(
+                f"[ERRO] Resposta inválida da API para {moeda}: {e}"
+            )
+
+    if not dfs:
+        return pd.DataFrame()
+
+    return pd.concat(dfs, ignore_index=True)
 
 def get_cotacoes_moedas (
     spark,
@@ -110,12 +164,37 @@ def get_cotacoes_moedas (
 
     df = get_boletins(start_ref, end_ref)
     df_spark = spark.createDataFrame(df)
-    df_spark = df_spark.filter(F.col("tipoBoletim") == "Fechamento") \
-                        .withColumn("dataCotacao", F.to_date(F.col("dataHoraCotacao"))) \
-                        .withColumn("dt_ingestao",  F.current_timestamp()) \
-                        .orderBy(F.col("dataCotacao").desc(), F.col("moeda").asc()) \
-                        .select("dataCotacao", "moeda", "cotacaoCompra", "cotacaoVenda", 
-                "paridadeCompra", "paridadeVenda", "dataHoraCotacao", "tipoBoletim","dt_ingestao") \
+    df_spark = (
+        df_spark
+        .filter(F.col("tipoBoletim") == "Fechamento")
+        .withColumn(
+            "dataHoraCotacao",
+            F.to_timestamp(F.col("dataHoraCotacao"))
+        )
+        .withColumn(
+            "dataCotacao",
+            F.to_date(F.col("dataHoraCotacao"))
+        )
+        .withColumn(
+            "dt_ingestao",
+            F.current_timestamp()
+        )
+        .orderBy(
+            F.col("dataCotacao").desc(),
+            F.col("moeda").asc()
+        )
+        .select(
+            "dataCotacao",
+            "moeda",
+            "cotacaoCompra",
+            "cotacaoVenda",
+            "paridadeCompra",
+            "paridadeVenda",
+            "dataHoraCotacao",
+            "tipoBoletim",
+            "dt_ingestao"
+        )
+    )
                 
     df_spark = df_spark.filter(F.col("datacotacao") >  pd.to_datetime(start_ref).date()) \
                        .dropDuplicates(["dataCotacao", "moeda"])
